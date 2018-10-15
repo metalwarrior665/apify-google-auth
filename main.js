@@ -163,11 +163,8 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials,
         server.close(()=>console.log('closing server'))
     }
 	
-    console.log(`Code is ${code}`);
       // Now that we have the code, use that to acquire tokens.
     const tokensResponse = await oAuth2Client.getToken(code)
-    console.log('tokens')
-    console.dir(tokensResponse.tokens)
     console.log(`Storing the tokens to your store under key ${tokensRecordKey}`)
     await store.setValue(tokensRecordKey, tokensResponse.tokens)
     oAuth2Client.setCredentials(tokensResponse.tokens);
