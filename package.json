@@ -1,0 +1,17 @@
+{
+  "name": "apify-google-auth",
+  "version": "0.0.2",
+  "description": "Google oauth in Apify actors",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Lukas Krivka",
+  "license": "ISC",
+  "dependencies": {
+    "google-auth-library": "^2.0.0"
+  },
+  "peerDependencies": {
+      "apify": "*"
+  }
+}
