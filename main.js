@@ -124,15 +124,16 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials,
         const port = Apify.isAtHome()? process.env.APIFY_CONTAINER_PORT : 3000
         const inputUrl = Apify.isAtHome()? process.env.APIFY_CONTAINER_URL : `localhost:${3000}`
 
+        console.log('...')
         console.log('STEP 1: Open this URL, log in and allow Apify to handle the project. Copy the resulting code to your clipboard.')
         console.log(authorizeUrl)
+        console.log('...')
         console.log('STEP 2: Open to this URL, paste the code from step 1 to the input field and submit. Then you may close both pages.\n')
         console.log(inputUrl)
+        console.log('...')
 
         const server = http.createServer((req, res)=>{
-            console.log('server got request')
             if(req.url.includes('/authorize')){
-                console.log('url', req.url)
                 let data = ''
                 req.on('data', body => {
                     if(body) data += body
