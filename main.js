@@ -3,22 +3,7 @@ const Apify = require('apify')
 const http = require('http')
 
 const {KEYS_STORE, DEFAULT_TOKENS_STORE, STATIC_PROXY_GROUP} = require('./constants')
-
-const html = `
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Apify Google authorization</title>
-  </head>
-  <body>
-    <form method="POST" action=/authorize>
-      <input placeholder= "your code" name="code" id="code"/>
-      <input type="submit">Submit</input>
-    </form>
-  </body>
-</html>
-`
+const html = require('./submit-page.js')
 
 module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials, puppeteerProxy}) => {
 
