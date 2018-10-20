@@ -2,7 +2,7 @@ const {OAuth2Client} = require('google-auth-library')
 const Apify = require('apify')
 const http = require('http')
 
-const {KEYS_STORE, DEFAULT_TOKENS_STORE, STATIC_PROXY_GROUP} = require('./constants')
+const {KEYS_STORE, KEYS_RECORD, DEFAULT_TOKENS_STORE, STATIC_PROXY_GROUP} = require('./constants')
 const html = require('./submit-page.js')
 
 module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials, puppeteerProxy}) => {
@@ -21,7 +21,7 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials,
 
     const keys = await Apify.client.keyValueStores.getRecord({
         storeId: KEYS_STORE,
-        key: scope
+        key: KEYS_RECORD
     }).then(res => res ? res.body : null)
 
     if(!keys || !keys.installed || !keys.installed.client_id || !keys.installed.client_secret || !Array.isArray(keys.installed.redirect_uris) || !keys.installed.redirect_uris[0]) throw ('Installed keys from developer console are missing or not in the right format, please contact Apify support!')
@@ -32,11 +32,10 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials,
         keys.installed.redirect_uris[0],
     );
 
-    const tokensRecordKey = keys.installed.client_id.match(/(.+)\.apps\.googleusercontent/)[1]
+    const tokensRecordKey = `${keys.installed.client_id.match(/(.+)\.apps\.googleusercontent/)[1]}-${scope}`
     
     const store = await Apify.openKeyValueStore(tokensStore || DEFAULT_TOKENS_STORE)
     const tokens = await store.getValue(tokensRecordKey)
-    
 
     if(tokens){
         console.log('We found tokens saved in our store. No need to authenticate again.')
