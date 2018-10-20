@@ -17,14 +17,18 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials,
         }
     }
 
-    if((!googleCredentials.email && googleCredentials.password) || (googleCredentials.email && !googleCredentials.password) ) throw('You provided google email but not password or password but not email.')
+    if((!googleCredentials.email && googleCredentials.password) || (googleCredentials.email && !googleCredentials.password) ) {
+        throw new Error('You provided google email but not password or password but not email.')
+    }
 
     const keys = await Apify.client.keyValueStores.getRecord({
         storeId: KEYS_STORE,
         key: KEYS_RECORD
     }).then(res => res ? res.body : null)
 
-    if(!keys || !keys.installed || !keys.installed.client_id || !keys.installed.client_secret || !Array.isArray(keys.installed.redirect_uris) || !keys.installed.redirect_uris[0]) throw ('Installed keys from developer console are missing or not in the right format, please contact Apify support!')
+    if(!keys || !keys.installed || !keys.installed.client_id || !keys.installed.client_secret || !Array.isArray(keys.installed.redirect_uris) || !keys.installed.redirect_uris[0]) {
+        throw new Error ('Installed keys from developer console are missing or not in the right format, please contact Apify support!')
+    }
 
     const oAuth2Client = new OAuth2Client(
         keys.installed.client_id,
