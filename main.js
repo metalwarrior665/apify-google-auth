@@ -116,7 +116,7 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials,
         console.log('STEP 1: Open this URL, log in and allow Apify to handle the project. Copy the resulting code to your clipboard.')
         console.log(authorizeUrl)
         console.log('...')
-        console.log('STEP 2: Open to this URL, paste the code from step 1 to the input field and submit. Then you may close both pages.\n')
+        console.log('STEP 2: Open live-view tab (next to the log you are watching) or URL below, paste the code from step 1 to the input field and submit. Then you may close both pages.\n')
         console.log(inputUrl)
         console.log('...')
 
@@ -128,7 +128,7 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials,
                 })
                 req.on('end', ()=>{
                     code = decodeURIComponent(data.replace('code=',''))
-                    res.end('You are now authorized, you may close this window. Your actor will resume.')
+                    res.end('You are now authorized, you may close this window. Your actor is continuing...')
                 })
             } 
             else{
