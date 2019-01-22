@@ -11,7 +11,7 @@ module.exports.authorize = (authorizeUrl) =>
   <body>
     <p style="${pCss} margin-top: 200px;"> Please open this URL, log in and allow Apify to handle the project. Copy the resulting code below. </p>
     <div style="text-align: center; margin-top: 50px">
-       <a style="${inputCss} text-decoration: none; margin: 0 auto; background-color: #00a6d0;" href="${authorizeUrl}"> AUTHORIZE URL </a>
+       <a target="_blank" style="${inputCss} text-decoration: none; margin: 0 auto; background-color: #00a6d0;" href="${authorizeUrl}"> AUTHORIZE URL </a>
     </div>
     <form method="POST" action=/authorize style="text-align: center; margin-top: 50px">
       <input placeholder= "your code" name="code" id="code" style="font-size: 14px;font-family: monospace,serif;color: #11181c; border-radius: 3px; border: 1px solid #ccc; padding: 10px 15px; width: 400px; height: 20px; margin: auto"/>
