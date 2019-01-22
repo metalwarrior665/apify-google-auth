@@ -4,14 +4,16 @@
   "description": "Google oauth in Apify actors",
   "main": "main.js",
   "scripts": {
+      "start": "node test.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Lukas Krivka",
   "license": "ISC",
   "dependencies": {
-    "google-auth-library": "^2.0.0"
+    "apify": "^0.11.5",
+    "google-auth-library": "^2.0.2"
   },
   "peerDependencies": {
-      "apify": "*"
+    "apify": "*"
   }
 }

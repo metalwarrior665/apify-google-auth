@@ -2,8 +2,9 @@ const {OAuth2Client} = require('google-auth-library')
 const Apify = require('apify')
 const http = require('http')
 
-const {KEYS_STORE, KEYS_RECORD, DEFAULT_TOKENS_STORE, STATIC_PROXY_GROUP} = require('./constants')
-const html = require('./submit-page.js')
+const { KEYS_STORE, KEYS_RECORD, DEFAULT_TOKENS_STORE, STATIC_PROXY_GROUP } = require('./constants')
+const { authorize, close } = require('./submit-page.js')
+const { pleaseOpen, liveView, localhost } = require('./asci-text.js');
 
 module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials, puppeteerProxy}) => {
 
@@ -111,12 +112,10 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials,
     else{
         const port = Apify.isAtHome() ? process.env.APIFY_CONTAINER_PORT : 3000
         // const inputUrl = Apify.isAtHome() ? process.env.APIFY_CONTAINER_URL : `localhost:${3000}`
-        const information = Apify.isAtHome() ? `live view tab` : `localhost:3000`
+        const information = Apify.isAtHome() ? liveView : localhost;
 
-        console.log('STEP 1: Open this URL, log in and allow Apify to handle the project. Copy the resulting code to your clipboard.')
-        console.log(authorizeUrl, '\n')
-
-        console.log(`STEP 2: Open ${information}, paste the code from step 1 to the input field and submit.\n`)
+        console.log(pleaseOpen);
+        console.log(information);
 
         const server = http.createServer((req, res)=>{
             if(req.url.includes('/authorize')){
@@ -126,11 +125,11 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials,
                 })
                 req.on('end', ()=>{
                     code = decodeURIComponent(data.replace('code=',''))
-                    res.end('You are now authorized, you may close this window. Your actor is continuing...')
+                    res.end(close())
                 })
             } 
             else{
-                res.end(html)
+                res.end(authorize(authorizeUrl))
             }
         })
 
