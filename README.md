@@ -20,7 +20,7 @@ For any other use, you have to create your own project in [Google Dev Console](h
 ```javascript
 const keys = {
     client_id: 'yourClientId',
-    client_secret: 'yourClientSecret,
+    client_secret: 'yourClientSecret',
     redirect_uri: 'yourRedirectUri' // the first one
 }
 ```
