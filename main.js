@@ -2,11 +2,11 @@ const { OAuth2Client } = require('google-auth-library');
 const Apify = require('apify');
 const http = require('http');
 
-const { KEYS_STORE, KEYS_RECORD, DEFAULT_TOKENS_STORE, STATIC_PROXY_GROUP } = require('./constants');
+const { CLIENT_ID, REDIRECT_URI, DEFAULT_TOKENS_STORE, STATIC_PROXY_GROUP } = require('./constants');
 const { authorize, close } = require('./submit-page.js');
 const { pleaseOpen, liveView, localhost } = require('./asci-text.js');
 
-module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials, puppeteerProxy }) => {
+module.exports.apifyGoogleAuth = async ({ scope, tokensStore, keys, googleCredentials, puppeteerProxy }) => {
     if (!scope) throw new Error('Missing scope parameter! We don\'t know which service you want to use.');
 
     if (!googleCredentials) {
@@ -21,30 +21,37 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, googleCredentials,
         throw new Error('You provided google email but not password or password but not email.');
     }
 
-    const keys = await Apify.client.keyValueStores.getRecord({
-        storeId: KEYS_STORE,
-        key: KEYS_RECORD,
-    }).then((res) => res ? res.body : null);
+    if (keys) {
+        if (typeof keys !== 'object' || !keys.client_id || !keys.client_secret || !keys.redirect_uri) {
+            throw new Error('Keys have wrong format. It has to be an object with fields: client_id, client_secret, redirect_uri.');
+        }
+    }
 
-    if (!keys || !keys.installed || !keys.installed.client_id || !keys.installed.client_secret || !Array.isArray(keys.installed.redirect_uris) || !keys.installed.redirect_uris[0]) {
-        throw new Error('Installed keys from developer console are missing or not in the right format, please contact Apify support!');
+    if (!keys) {
+        keys = {
+            client_id: CLIENT_ID,
+            client_secret: process.env.CLIENT_SECRET,
+            redirect_uri: REDIRECT_URI,
+        };
+        delete process.env.CLIENT_SECRET;
+        if (!keys.client_secret) {
+            throw new Error('No CLIENT_SECRET environment variable found. You need to set this environment variable if you don\'t use your own keys');
+        }
     }
 
     const oAuth2Client = new OAuth2Client(
-        keys.installed.client_id,
-        keys.installed.client_secret,
-        keys.installed.redirect_uris[0],
+        keys.client_id,
+        keys.client_secret,
+        keys.redirect_uri,
     );
 
-    const tokensRecordKey = `${keys.installed.client_id.match(/(.+)\.apps\.googleusercontent/)[1]}-${scope}`;
+    const tokensRecordKey = `${keys.client_id.match(/(.+)\.apps\.googleusercontent/)[1]}-${scope}`;
 
     const store = await Apify.openKeyValueStore(tokensStore || DEFAULT_TOKENS_STORE);
     const tokens = await store.getValue(tokensRecordKey);
 
     if (tokens) {
         console.log('We found tokens saved in our store. No need to authenticate again.');
-        const expiryDate = tokens.expiry_date;
-        console.log(`access token expires in ${(expiryDate - Date.now()) / 1000} seconds`);
         oAuth2Client.setCredentials(tokens);
         console.info('using stored tokens');
         return oAuth2Client;

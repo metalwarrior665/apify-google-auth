@@ -1,5 +1,5 @@
 const { apifyGoogleAuth } = require('./main');
 
 apifyGoogleAuth({
-    scope: 'spreadsheets'
+    scope: 'spreadsheets',
 })
