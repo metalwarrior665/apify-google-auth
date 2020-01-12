@@ -2,11 +2,11 @@ const { OAuth2Client } = require('google-auth-library');
 const Apify = require('apify');
 const http = require('http');
 
-const { CLIENT_ID, REDIRECT_URI, DEFAULT_TOKENS_STORE, STATIC_PROXY_GROUP } = require('./constants');
+const { DEFAULT_TOKENS_STORE, STATIC_PROXY_GROUP } = require('./constants');
 const { authorize, close } = require('./submit-page.js');
 const { pleaseOpen, liveView, localhost } = require('./asci-text.js');
 
-module.exports.apifyGoogleAuth = async ({ scope, tokensStore, keys, googleCredentials, puppeteerProxy }) => {
+module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googleCredentials, puppeteerProxy }) => {
     if (!scope) throw new Error('Missing scope parameter! We don\'t know which service you want to use.');
 
     if (!googleCredentials) {
@@ -21,31 +21,17 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, keys, googleCreden
         throw new Error('You provided google email but not password or password but not email.');
     }
 
-    if (keys) {
-        if (typeof keys !== 'object' || !keys.client_id || !keys.client_secret || !keys.redirect_uri) {
-            throw new Error('Keys have wrong format. It has to be an object with fields: client_id, client_secret, redirect_uri.');
-        }
-    }
-
-    if (!keys) {
-        keys = {
-            client_id: CLIENT_ID,
-            client_secret: process.env.CLIENT_SECRET,
-            redirect_uri: REDIRECT_URI,
-        };
-        delete process.env.CLIENT_SECRET;
-        if (!keys.client_secret) {
-            throw new Error('No CLIENT_SECRET environment variable found. You need to set this environment variable if you don\'t use your own keys');
-        }
+    if (typeof credentials !== 'object' || !credentials.client_id || !credentials.client_secret || !credentials.redirect_uri) {
+        throw new Error('credentials have wrong format. It has to be an object with fields: client_id, client_secret, redirect_uri.');
     }
 
     const oAuth2Client = new OAuth2Client(
-        keys.client_id,
-        keys.client_secret,
-        keys.redirect_uri,
+        credentials.client_id,
+        credentials.client_secret,
+        credentials.redirect_uri,
     );
 
-    const tokensRecordKey = `${keys.client_id.match(/(.+)\.apps\.googleusercontent/)[1]}-${scope}`;
+    const tokensRecordKey = `${credentials.client_id.match(/(.+)\.apps\.googleusercontent/)[1]}-${scope}`;
 
     const store = await Apify.openKeyValueStore(tokensStore || DEFAULT_TOKENS_STORE);
     const tokens = await store.getValue(tokensRecordKey);
