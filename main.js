@@ -31,7 +31,12 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
         credentials.redirect_uri,
     );
 
-    const tokensRecordKey = `${credentials.client_id.match(/(.+)\.apps\.googleusercontent/)[1]}-${scope}`;
+    let tokensRecordKey;
+    try {
+        tokensRecordKey = `${credentials.client_id.match(/(.+)\.apps\.googleusercontent/)[1]}-${scope}`;
+    } catch (e) {
+        throw new Error('Your client_id has wrong format. It should end with .apps.googleusercontent.com')
+    }
 
     const store = await Apify.openKeyValueStore(tokensStore || DEFAULT_TOKENS_STORE);
     const tokens = await store.getValue(tokensRecordKey);
