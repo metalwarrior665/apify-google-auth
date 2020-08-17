@@ -2,7 +2,7 @@
   "name": "apify-google-auth",
   "version": "0.3.0",
   "description": "Google oauth in Apify actors",
-  "main": "main.js",
+  "main": "src/main.js",
   "scripts": {
       "start": "node test.js",
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -5,6 +5,7 @@ const http = require('http');
 const { DEFAULT_TOKENS_STORE, STATIC_PROXY_GROUP } = require('./constants');
 const { authorize, close } = require('./submit-page.js');
 const { pleaseOpen, liveView, localhost } = require('./asci-text.js');
+const selectCredentialsAndTokens = require('./select-credentials-and-tokens');
 
 module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googleCredentials, puppeteerProxy }) => {
     if (!scope) throw new Error('Missing scope parameter! We don\'t know which service you want to use.');
@@ -25,21 +26,16 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
         throw new Error('credentials have wrong format. It has to be an object with fields: client_id, client_secret, redirect_uri.');
     }
 
+    const store = await Apify.openKeyValueStore(tokensStore || DEFAULT_TOKENS_STORE);
+
+    const { pickedCredentials, tokens, tokensRecordKey } = await selectCredentialsAndTokens({ store, credentials, scope });
+
     const oAuth2Client = new OAuth2Client(
-        credentials.client_id,
-        credentials.client_secret,
+        pickedCredentials.client_id,
+        pickedCredentials.client_secret,
+        // This is always the same
         credentials.redirect_uri,
     );
-
-    let tokensRecordKey;
-    try {
-        tokensRecordKey = `${credentials.client_id.match(/(.+)\.apps\.googleusercontent/)[1]}-${scope}`;
-    } catch (e) {
-        throw new Error('Your client_id has wrong format. It should end with .apps.googleusercontent.com')
-    }
-
-    const store = await Apify.openKeyValueStore(tokensStore || DEFAULT_TOKENS_STORE);
-    const tokens = await store.getValue(tokensRecordKey);
 
     if (tokens) {
         console.log('We found tokens saved in our store. No need to authenticate again.');
@@ -49,7 +45,6 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
     }
 
     console.log('We have to authenticate to get the tokens');
-
 
     const authorizeUrl = oAuth2Client.generateAuthUrl({
         access_type: 'offline',
