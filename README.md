@@ -2,8 +2,13 @@
 
 This small library allows using OAuth for Google services with [Apify](http://apify.com/) actors platform.
 
+## Chagelog
+
 ### 0.1.* -> 0.3.0
 From version `0.3.0` you cannot use Apify's Google OAuth credentials on your local machine. If you want to run it from outside of official Apify actors (like [Google Sheets](https://apify.com/lukaskrivka/google-sheets)), you have to create your own project in Google Console and provide your own credentials.
+
+### 0.3.* -> 0.4.0
+Bumped underlying `google-auth-library` from `2.0` to `6.1.1`. It should not affect anything
 
 ## How it works
 This library opens a page either at live view (default Apify actor port) on Apify platform or at `localhost:3000` otherwise. You need to click on `Authorize` and then login and submit with your Google account that you want to integrate. Then copy the key to the input field and submit. Your tokens will be stored in named key value store (the field is called `tokensStore` and by defaults to `google-oauth-tokens`) and any subsequent runs will first use these tokens so you don't need to authorize again.
