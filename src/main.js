@@ -57,7 +57,7 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
         switch (puppeteerProxy) {
             case 'local': console.log('Not using proxy, you should use this option only locally'); puppeteerOptions = { useChrome: true }; break;
             case puppeteerProxy: console.log('Using provided proxy.'); puppeteerOptions = { proxyUrl: puppeteerProxy, useChrome: true }; break;
-            default: console.log('Using default static proxy.'); puppeteerOptions = { useApifyProxy: true, apifyProxyGroups: [STATIC_PROXY_GROUP], useChrome: true };
+            default: console.log('Using default static proxy.'); puppeteerOptions = { proxyUrl: `http://groups-${STATIC_PROXY_GROUP}:${Apify.getEnv().proxyPassword}@proxy.apify.com:8000`, useChrome: true };
         }
 
         const browser = await Apify.launchPuppeteer(puppeteerOptions);
@@ -66,17 +66,17 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
         await page.waitForSelector('#identifierId');
 
         try {
-            await page.waitFor(2000);
+            await page.waitForTimeout(2000);
             await page.type('#identifierId', googleCredentials.email);
-            await page.waitFor(2000);
+            await page.waitForTimeout(2000);
             await page.click('#identifierNext');
-            await page.waitFor(2000);
+            await page.waitForTimeout(2000);
             await page.waitForSelector('[type="password"]');
             await page.evaluate((pass) => { document.querySelector('[type="password"]').value = pass; }, googleCredentials.password).catch((e) => console.log('evaluating failed', e));
-            await page.waitFor(2000);
+            await page.waitForTimeout(2000);
             // await saveScreen(page,'after-pass')
             await page.click('#passwordNext');
-            await page.waitFor(2000);
+            await page.waitForTimeout(2000);
             // await saveScreen(page,'after-next')
             try {
                 await page.waitForSelector('#knowledge-preregistered-email-response', { timeout: 3000 });
@@ -84,7 +84,7 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
                     throw new Error('Google wants us to provide second email but there is no in the googleCredentials parameter. Please update it.');
                 }
                 await page.evaluate((mail) => { document.querySelector('#knowledge-preregistered-email-response').value = mail; }, googleCredentials.secondEmail).catch((e) => console.log('evaluating failed', e));
-                await page.waitFor(2000);
+                await page.waitForTimeout(2000);
                 await page.click('#next');
             } catch (e) {
                 console.log('e');
