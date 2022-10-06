@@ -34,7 +34,7 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
         pickedCredentials.client_id,
         pickedCredentials.client_secret,
         // This is always the same
-        credentials.redirect_uri,
+        pickedCredentials.redirect_uri,
     );
 
     if (tokens) {
