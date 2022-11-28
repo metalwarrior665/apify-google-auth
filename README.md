@@ -3,6 +3,8 @@
 This small library allows using OAuth for Google services with [Apify](http://apify.com/) actors platform.
 
 ## Chagelog
+### 0.5.0 -> 0.5.1
+Added option to provide custom redirect_uri which is now needed after Google banned Out-of-band OAuth. You need ot direct the redirect to your server.
 
 ### 0.4.* -> 0.5.0
 `apify` package is not only peer dependency. It should work even for most old versions.
