@@ -1,6 +1,6 @@
 {
   "name": "apify-google-auth",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Google oauth in Apify actors",
   "main": "src/main.js",
   "scripts": {
