@@ -10,7 +10,8 @@
   "author": "Lukas Krivka",
   "license": "ISC",
   "dependencies": {
-    "google-auth-library": "^6.1.1"
+    "google-auth-library": "^6.1.1",
+    "uuid-by-string": "^4.0.0"
   },
   "peerDependencies": {
     "apify": "*"
