@@ -110,7 +110,7 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
         console.log(information);
 
         const server = http.createServer((req, res) => {
-            if (req.url.includes('/authorize')) {
+            if (/[?&]code=/.test(req.url)) {
                 let data = '';
                 req.on('data', (body) => {
                     if (body) data += body;
