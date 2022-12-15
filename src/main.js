@@ -110,13 +110,13 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
         console.log(information);
 
         const server = http.createServer((req, res) => {
-            if (/[?&]code=/.test(req.url)) {
+            code = new URL(req.url, pickedCredentials.redirect_uri).searchParams.get('code');
+            if (code) {
                 let data = '';
                 req.on('data', (body) => {
                     if (body) data += body;
                 });
                 req.on('end', () => {
-                    code = decodeURIComponent(data.replace('code=', ''));
                     res.end(close());
                 });
             } else {
