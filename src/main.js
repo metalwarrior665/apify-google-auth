@@ -49,8 +49,13 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
     const authorizeUrl = oAuth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: `https://www.googleapis.com/auth/${scope}`,
+        // Always prompt for user consent otherwise, there is a chance to not obtain refresh_token
+        // https://stackoverflow.com/a/10857806
+        prompt: 'consent'
     });
-    let code;
+
+    const codeHolder = { code: null }; // To be able to access code as reference from any scope
+
     if (googleCredentials.email) {
         console.log('You provided an email so we will try to log in with puppeteer. You may have to allow for access after authorization in your email depending on the security level you have.');
         let puppeteerOptions;
@@ -93,7 +98,7 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
             await page.waitForSelector('#submit_approve_access');
             await page.click('#submit_approve_access');
             await page.waitForSelector('#code', { timeout: 120000 });
-            code = await page.$eval('#code', (el) => el.value);
+            codeHolder.code = await page.$eval('#code', (el) => el.value);
             await page.close();
             await browser.close();
         } catch (e) {
@@ -109,15 +114,22 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
         console.log(pleaseOpen);
         console.log(information);
 
+        let codeBeenSet;
+        const waitForCodeBeenSet = new Promise((resolve) => {
+            codeBeenSet = resolve;
+        });
+
         const server = http.createServer((req, res) => {
-            code = new URL(req.url, pickedCredentials.redirect_uri).searchParams.get('code');
-            if (code) {
+            codeHolder.code = new URL(req.url, pickedCredentials.redirect_uri).searchParams.get('code');
+            if (codeHolder.code) {
                 let data = '';
                 req.on('data', (body) => {
                     if (body) data += body;
                 });
                 req.on('end', () => {
                     res.end(close());
+                    codeBeenSet();
+                    console.log("Code was successfully provided!")
                 });
             } else {
                 res.end(authorize(authorizeUrl));
@@ -126,21 +138,34 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
 
         server.listen(port, () => console.log('server is listening on port', port));
 
-        const start = Date.now();
-        while (!code) {
-            const now = Date.now();
-            if (now - start > 5 * 60 * 1000) {
-                throw new Error('You did not provide the code in time!');
-            }
-            console.log(`waiting for code...You have ${300 - Math.floor((now - start) / 1000)} seconds left`);
-            await new Promise((resolve) => setTimeout(resolve, 10000));
-        }
+        let timeoutInterval;
+        const waitForTimeout = new Promise((resolve, reject) => {
+            const start = Date.now();
+
+            timeoutInterval = setInterval(() => {
+                const now = Date.now();
+                if (now - start > 5 * 1000) {
+                    reject('You did not provide the code in time!');
+                } else {
+                    console.log(`waiting for code...You have ${300 - Math.floor((now - start) / 1000)} seconds left`);
+                }
+            }, 10000)
+        });
+
+        // Wait for code being set by user or time runs out
+        await Promise.race([
+            waitForTimeout.catch((errorMessage) => { throw new Error(errorMessage) }),
+            waitForCodeBeenSet
+        ]);
+
+        clearInterval(timeoutInterval);  // clear Interval no matter what happened
+        codeBeenSet(); // Resolve in case of timeout
 
         server.close(() => console.log('closing server'));
     }
 
     // Now that we have the code, use that to acquire tokens.
-    const tokensResponse = await oAuth2Client.getToken(code);
+    const tokensResponse = await oAuth2Client.getToken(codeHolder.code);
     console.log(`Storing the tokens to your store under key ${tokensRecordKey}`);
     await store.setValue(tokensRecordKey, tokensResponse.tokens);
     oAuth2Client.setCredentials(tokensResponse.tokens);
