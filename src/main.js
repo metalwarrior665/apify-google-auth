@@ -144,7 +144,7 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
 
             timeoutInterval = setInterval(() => {
                 const now = Date.now();
-                if (now - start > 5 * 1000) {
+                if (now - start > 5 * 60 * 1_000) {
                     reject('You did not provide the code in time!');
                 } else {
                     console.log(`waiting for code...You have ${300 - Math.floor((now - start) / 1000)} seconds left`);
