@@ -5,6 +5,7 @@ const http = require('http');
 const { DEFAULT_TOKENS_STORE, STATIC_PROXY_GROUP } = require('./constants');
 const { authorize, close } = require('./submit-page.js');
 const { pleaseOpen, liveView, localhost } = require('./asci-text.js');
+const EventEmitter = require('events');
 const selectCredentialsAndTokens = require('./select-credentials-and-tokens');
 
 module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googleCredentials, puppeteerProxy }) => {
@@ -109,14 +110,32 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
         console.log(pleaseOpen);
         console.log(information);
 
+        const eventEmitter = new EventEmitter();
+
+        const start = Date.now();
+        const TIMEOUT = 5 * 60 * 1000; // 5 Minutes
+        const timeout = setTimeout(() => {
+            eventEmitter.emit("TIMEOUT");
+        }, TIMEOUT);
+
+        console.log(`waiting for code...You have ${Math.floor(TIMEOUT / 1000)} seconds left...`);
+
+        const waitingMessage = setInterval(() => {
+            console.log(`waiting for code...You have ${Math.floor((start + TIMEOUT - Date.now()) / 1000)} seconds left...`);
+        }, 10_000);
+
         const server = http.createServer((req, res) => {
-            code = new URL(req.url, pickedCredentials.redirect_uri).searchParams.get('code');
-            if (code) {
+            if (req.method === 'POST') {
                 let data = '';
                 req.on('data', (body) => {
                     if (body) data += body;
                 });
                 req.on('end', () => {
+                    code = decodeURIComponent(data.replace('code=', ''));
+                    clearInterval(waitingMessage);
+                    clearTimeout(timeout);
+                    eventEmitter.emit('GOT_TOKEN');
+                    console.log(`code successfully obtained!`);
                     res.end(close());
                 });
             } else {
@@ -126,15 +145,15 @@ module.exports.apifyGoogleAuth = async ({ scope, tokensStore, credentials, googl
 
         server.listen(port, () => console.log('server is listening on port', port));
 
-        const start = Date.now();
-        while (!code) {
-            const now = Date.now();
-            if (now - start > 5 * 60 * 1000) {
-                throw new Error('You did not provide the code in time!');
-            }
-            console.log(`waiting for code...You have ${300 - Math.floor((now - start) / 1000)} seconds left`);
-            await new Promise((resolve) => setTimeout(resolve, 10000));
-        }
+        await new Promise((resolve, reject) => {
+           eventEmitter.on('GOT_TOKEN', () => {
+               resolve();
+           });
+
+            eventEmitter.on('TIMEOUT', () => {
+                reject(`You did not provide the code in time!`);
+            });
+        });
 
         server.close(() => console.log('closing server'));
     }
