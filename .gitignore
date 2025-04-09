@@ -2,3 +2,6 @@ node_modules
 apify_storage
 local-test
 storage
+# Added by Apify CLI
+.venv
+.actor

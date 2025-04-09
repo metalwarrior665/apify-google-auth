@@ -3,11 +3,16 @@
 This small library allows using OAuth for Google services with [Apify](http://apify.com/) actors platform.
 
 ## Chagelog
+
+### 0.6
+- Migrated to Apify SDK v3 which is required as peer dependency.
+- Removed support for deprecated `googleCredentials`.
+
 ### 0.5.0 -> 0.5.1
 Added option to provide custom redirect_uri which is now needed after Google banned Out-of-band OAuth. You need ot direct the redirect to your server.
 
 ### 0.4.* -> 0.5.0
-`apify` package is not only peer dependency. It should work even for most old versions.
+`apify` package is now only peer dependency. It should work even for most old versions.
 
 ### 0.3.* -> 0.4.0
 Bumped underlying `google-auth-library` from `2.0` to `6.1.1`. It should not affect anything
@@ -38,11 +43,11 @@ Unless you go through a strict verification process, Google will mark your proje
 This library returns you the authorized client that you can pass into `googleapis` library to use any Google service. Example for Google Sheets.
 
 ```javascript
-const Apify = require('apify');
+const { Actor } = require('apify');
 const { google } = require('googleapis');
 const { apifyGoogleAuth } = require('apify-google-auth');
 
-Apify.main(async () => {
+Actor.main(async () => {
     const authOptions = {
         scope: 'spreadsheets',
         credentials: {

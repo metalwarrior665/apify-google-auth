@@ -1,8 +1,8 @@
-const Apify = require('apify');
+const { Actor } = require('apify');
 const { apifyGoogleAuth } = require('./main');
 
-Apify.main(async () => {
-    const input = await Apify.getValue('INPUT');
+Actor.main(async () => {
+    const input = await Actor.getInput();
     const {
         scope = 'spreadsheets',
         credentials

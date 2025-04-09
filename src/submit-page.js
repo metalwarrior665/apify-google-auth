@@ -14,7 +14,7 @@ module.exports.authorize = (authorizeUrl) =>
        <a target="_blank" style="${inputCss} text-decoration: none; margin: 0 auto; background-color: #00a6d0;" href="${authorizeUrl}"> AUTHORIZE </a>
     </div>
     <form method="POST" action=/authorize style="text-align: center; margin-top: 50px">
-      <input placeholder= "your code" name="code" id="code" style="font-size: 14px;font-family: monospace,serif;color: #11181c; border-radius: 3px; border: 1px solid #ccc; padding: 10px 15px; width: 400px; height: 20px; margin: auto"/>
+      <input type="text" placeholder= "your code" name="code" id="code" style="font-size: 14px;font-family: monospace,serif;color: #11181c; border-radius: 3px; border: 1px solid #ccc; padding: 10px 15px; width: 400px; height: 20px; margin: auto"/>
       <input type="submit" style="${inputCss}"/>
     </form>
   </body>
